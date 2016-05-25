@@ -94,7 +94,7 @@ public class MainActivity extends Activity
         lockcenter = (ImageView) findViewById(R.id.lockcenter);
 
         //ibeacon scan
-        thread = new Thread(sendtoServer);
+        thread = new Thread(connecttoServer);
         thread.start();
 
         mHandler = new Handler();
@@ -105,7 +105,9 @@ public class MainActivity extends Activity
 
         beaconManager = BeaconManager.getInstanceForApplication(this);
         beaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24"));
+        beaconManager.setBackgroundScanPeriod(500);
         beaconManager.bind(this);
+        beaconManager.setBackgroundMode(true);
 
         mSails = new SAILS(this);
         //set location mode.
@@ -480,7 +482,7 @@ public class MainActivity extends Activity
 
     }
 
-    public Runnable sendtoServer = new Runnable() {
+    public Runnable connecttoServer = new Runnable() {
         @Override
         public void run() {
             try {
@@ -498,14 +500,14 @@ public class MainActivity extends Activity
             if( Rssi > PreviousRssi ) {
                 if( PreviousMajor != Major && PreviousMinor != Minor ) {
                     //set start region
-                    List<LocationRegion> locationRegions;
+                    List<LocationRegion> locationRegions = null;
                     if (Major == 4369 && Minor == 8738) {
                         locationRegions = mSails.findRegionByLabel("資電222 - 第三國際會議廳");
-                    } else {
+                    } else if (Major == 257 && Minor == 65505) {
                         locationRegions = mSails.findRegionByLabel("資電201 - 資訊系辦公室");
                     }
                     mVibrator.vibrate(70);
-                    mSailsMapView.getMarkerManager().clear();
+                    //mSailsMapView.getMarkerManager().clear();
                     mSailsMapView.getRoutingManager().setStartRegion(locationRegions.get(0));
                     mSailsMapView.getMarkerManager().setLocationRegionMarker(locationRegions.get(0), Marker.boundCenter(getResources().getDrawable(R.drawable.start_point)));
                     mSailsMapView.getRoutingManager().setStartMakerDrawable(Marker.boundCenter(getResources().getDrawable(R.drawable.start_point)));
